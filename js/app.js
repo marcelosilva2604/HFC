@@ -241,13 +241,26 @@ async function signAndSend() {
     closeModal();
   } catch (err) {
     setStep('stepSend', 'fail');
+    const monthLabel = `${MONTH_NAMES[state.month - 1]} ${YEAR}`;
+    const mailto = 'mailto:coreme@piracicaba.sp.gov.br' +
+      '?cc=marcelo_carvalhosilva@hotmail.com' +
+      `&subject=${encodeURIComponent(`Folha de ponto ${monthLabel} - ${state.bundle.name}`)}` +
+      `&body=${encodeURIComponent('Segue em anexo a folha de ponto (baixada do sistema HFC).')}`;
     const final = document.getElementById('modalFinal');
-    final.textContent = `Falha no envio: ${err.message}. Baixe o PDF e envie manualmente.`;
     final.classList.add('fail');
+    final.innerHTML =
+      'O envio automático falhou. Sem problema, faça manualmente:<br>' +
+      '<span style="font-weight:400;display:block;margin-top:0.5rem;text-align:left">' +
+      '1. Toque em <b>Baixar PDF</b> abaixo;<br>' +
+      '2. Envie o arquivo por e-mail para <b>coreme@piracicaba.sp.gov.br</b> ' +
+      'com cópia para <b>marcelo_carvalhosilva@hotmail.com</b> (anexe o PDF baixado).</span>' +
+      `<div style="display:flex;gap:0.6rem;justify-content:center">` +
+      `<button onclick="document.getElementById('download').click()">Baixar PDF</button>` +
+      `<button onclick="window.location.href='${mailto}'">Abrir e-mail</button></div>`;
     final.hidden = false;
     document.getElementById('modalClose').hidden = false;
     document.getElementById('modalClose').onclick = closeModal;
-    setStatus('status', `Falha no envio: ${err.message}.`, 'error');
+    setStatus('status', 'Falha no envio automático. Baixe o PDF e envie por e-mail (instruções acima).', 'error');
     btn.disabled = false;
   }
 }
