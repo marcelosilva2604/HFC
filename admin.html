@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HFC - Administração</title>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      margin: 0;
+      background: #f4f6f8;
+      color: #1a2733;
+    }
+    header { background: #7c2d12; color: #fff; padding: 1rem 1.5rem; }
+    header h1 { margin: 0; font-size: 1.15rem; }
+    main { max-width: 900px; margin: 0 auto; padding: 1rem 1.5rem; display: grid; gap: 1rem; }
+    .panel { background: #fff; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.06); padding: 1.2rem; }
+    .panel h2 { margin: 0 0 0.8rem; font-size: 1rem; }
+    label.field { display: block; font-size: 0.8rem; font-weight: 600; margin: 0.6rem 0 0.2rem; }
+    input[type=text], input[type=password], input[type=email] {
+      width: 100%; padding: 0.45rem; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 0.9rem;
+    }
+    input[type=file] { font-size: 0.85rem; margin-top: 0.2rem; }
+    table.pattern { border-collapse: collapse; width: 100%; margin-top: 0.4rem; }
+    table.pattern th, table.pattern td { border: 1px solid #e2e8f0; padding: 0.25rem; font-size: 0.78rem; text-align: center; }
+    table.pattern input { width: 3.2rem; padding: 0.25rem; border: 1px solid #cbd5e1; border-radius: 4px; text-align: center; }
+    table.pattern input.local { width: 5.5rem; }
+    button {
+      margin-top: 0.9rem; padding: 0.55rem 1.2rem; background: #7c2d12; color: #fff;
+      border: none; border-radius: 8px; font-size: 0.9rem; font-weight: 600; cursor: pointer;
+    }
+    button:disabled { opacity: 0.6; }
+    button.small { padding: 0.25rem 0.7rem; font-size: 0.78rem; margin: 0; background: #b91c1c; }
+    #status, #coordStatus { margin-top: 0.6rem; font-size: 0.85rem; min-height: 1.2em; }
+    .ok { color: #15803d; font-weight: 600; }
+    .error { color: #b91c1c; font-weight: 600; }
+    ul#registered { list-style: none; padding: 0; margin: 0.4rem 0 0; }
+    ul#registered li { display: flex; justify-content: space-between; align-items: center; padding: 0.35rem 0; border-bottom: 1px solid #f1f5f9; font-size: 0.88rem; }
+    .hint { font-size: 0.75rem; color: #64748b; margin-top: 0.2rem; }
+  </style>
+</head>
+<body>
+  <header><h1>HFC — Administração (coordenador)</h1></header>
+  <main>
+    <section class="panel">
+      <h2>Acesso</h2>
+      <label class="field">Token de administrador</label>
+      <input type="password" id="adminToken" placeholder="cole aqui o token gerado no setup do Apps Script">
+      <p class="hint">Gerado uma única vez ao rodar a função <code>setup</code> no editor do Apps Script. Fica salvo só neste navegador.</p>
+    </section>
+
+    <section class="panel">
+      <h2>Preceptores cadastrados</h2>
+      <ul id="registered"></ul>
+      <button id="refresh">Atualizar lista</button>
+    </section>
+
+    <section class="panel">
+      <h2>Cadastrar / atualizar preceptor</h2>
+      <label class="field">Nome completo (como sai na folha)</label>
+      <input type="text" id="pName" placeholder="Ex.: Adriana Castro">
+      <label class="field">Especialidade / setor (como sai na folha)</label>
+      <input type="text" id="pEsp" placeholder="Ex.: Enfermaria de Pediatria">
+      <label class="field">E-mail (para lembretes futuros; opcional)</label>
+      <input type="email" id="pEmail">
+      <label class="field">Padrão semanal (deixe em branco o que não se aplica)</label>
+      <table class="pattern" id="pattern"></table>
+      <label class="field">Rubrica (PNG, fundo transparente)</label>
+      <input type="file" id="pRubrica" accept="image/png">
+      <label class="field">Assinatura completa (PNG, fundo transparente)</label>
+      <input type="file" id="pAssinatura" accept="image/png">
+      <label class="field">Carimbo (PNG, fundo transparente)</label>
+      <input type="file" id="pCarimbo" accept="image/png">
+      <label class="field">Senha do preceptor</label>
+      <input type="text" id="pSenha" placeholder="defina uma senha (anote e entregue a ele)">
+      <button id="save">Salvar preceptor</button>
+      <div id="status"></div>
+    </section>
+
+    <section class="panel">
+      <h2>Coordenador (sai em todas as folhas)</h2>
+      <label class="field">Assinatura do coordenador (PNG)</label>
+      <input type="file" id="cAssinatura" accept="image/png">
+      <label class="field">Carimbo do coordenador (PNG)</label>
+      <input type="file" id="cCarimbo" accept="image/png">
+      <button id="saveCoord">Salvar coordenador</button>
+      <div id="coordStatus"></div>
+    </section>
+  </main>
+  <script src="js/config.js"></script>
+  <script src="js/api.js"></script>
+  <script src="js/crypto.js"></script>
+  <script src="js/admin.js"></script>
+</body>
+</html>

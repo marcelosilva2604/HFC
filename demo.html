@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HFC - Folha de Ponto dos Preceptores</title>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      margin: 0;
+      background: #f4f6f8;
+      color: #1a2733;
+    }
+    header {
+      background: #14532d;
+      color: #fff;
+      padding: 1rem 1.5rem;
+    }
+    header h1 { margin: 0; font-size: 1.2rem; }
+    header p { margin: 0.2rem 0 0; font-size: 0.85rem; opacity: 0.85; }
+    .badge {
+      display: inline-block;
+      background: #f59e0b;
+      color: #1a2733;
+      font-size: 0.7rem;
+      font-weight: 700;
+      padding: 0.15rem 0.5rem;
+      border-radius: 99px;
+      margin-left: 0.5rem;
+      vertical-align: middle;
+    }
+    main {
+      display: grid;
+      grid-template-columns: 380px 1fr;
+      gap: 1rem;
+      padding: 1rem 1.5rem;
+      max-width: 1300px;
+      margin: 0 auto;
+    }
+    @media (max-width: 900px) { main { grid-template-columns: 1fr; } }
+    .panel {
+      background: #fff;
+      border-radius: 10px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+      padding: 1rem;
+    }
+    label.field { display: block; font-size: 0.8rem; font-weight: 600; margin: 0.6rem 0 0.2rem; }
+    select {
+      width: 100%;
+      padding: 0.45rem;
+      border: 1px solid #cbd5e1;
+      border-radius: 6px;
+      font-size: 0.9rem;
+      background: #fff;
+    }
+    #days {
+      margin-top: 0.8rem;
+      max-height: 420px;
+      overflow-y: auto;
+      border: 1px solid #e2e8f0;
+      border-radius: 6px;
+    }
+    .day {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.28rem 0.6rem;
+      font-size: 0.82rem;
+      border-bottom: 1px solid #f1f5f9;
+    }
+    .day.saturday, .day.sunday { background: #e2e8f0; color: #64748b; }
+    .day.feriado, .day.ponto_facultativo { background: #fef9c3; color: #854d0e; }
+    .day.has-shift { font-weight: 600; }
+    #total { font-weight: 700; margin-top: 0.6rem; font-size: 0.95rem; }
+    button {
+      margin-top: 0.8rem;
+      width: 100%;
+      padding: 0.65rem;
+      background: #14532d;
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      font-size: 0.95rem;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    button:disabled { opacity: 0.6; cursor: wait; }
+    #download {
+      display: none;
+      margin-top: 0.6rem;
+      text-align: center;
+      width: 100%;
+      padding: 0.5rem;
+      border: 1.5px solid #14532d;
+      border-radius: 8px;
+      color: #14532d;
+      font-weight: 600;
+      font-size: 0.9rem;
+      text-decoration: none;
+    }
+    button.secondary {
+      background: #fff;
+      color: #14532d;
+      border: 1.5px solid #14532d;
+    }
+    #status { margin-top: 0.6rem; font-size: 0.85rem; min-height: 1.2em; }
+    #status.ok { color: #15803d; font-weight: 600; }
+    #status.error { color: #b91c1c; font-weight: 600; }
+    #preview {
+      width: 100%;
+      height: 82vh;
+      border: 1px solid #e2e8f0;
+      border-radius: 10px;
+      background: #fff;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>HFC — Folha de Ponto dos Preceptores <span class="badge">DEMONSTRAÇÃO</span></h1>
+    <p>Residência Médica de Pediatria · Piracicaba · dados fictícios nesta fase</p>
+  </header>
+  <main>
+    <section class="panel">
+      <label class="field" for="preceptor">Preceptor</label>
+      <select id="preceptor"></select>
+      <label class="field" for="month">Mês</label>
+      <select id="month"></select>
+      <div id="days"></div>
+      <div id="total"></div>
+      <button id="generate">Gerar folha (preview)</button>
+      <a id="download">Baixar PDF</a>
+      <div id="status"></div>
+    </section>
+    <section>
+      <iframe id="preview" title="Preview da folha de ponto"></iframe>
+    </section>
+  </main>
+  <script src="js/config.js"></script>
+  <script src="js/vendor/pdf-lib.min.js"></script>
+  <script src="js/calendar.js"></script>
+  <script src="js/sheet-pdf.js"></script>
+  <script src="js/demo.js"></script>
+</body>
+</html>

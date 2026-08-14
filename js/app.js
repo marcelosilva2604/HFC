@@ -1,124 +1,87 @@
-/* Demo UI: fictitious preceptors, month selection, day editing and PDF preview.
- * Real preceptor data, passwords and encrypted assets come in the next phase
- * (Apps Script vault); nothing sensitive lives in this repo. */
+/* Real preceptor flow: login with personal password, review/edit the month's
+ * days, preview the exact sheet, then sign and send. The password decrypts
+ * the preceptor's bundle in the browser; nothing sensitive is stored here. */
 
-const DEMO_PRECEPTORS = [
-  {
-    id: 'demo-uti',
-    name: 'Dra. Exemplo de Demonstração',
-    especialidade: 'UTI Pediátrica (demo)',
-    pattern: {
-      mon: { exp1: { in: 7, out: 13 } },
-      tue: { exp1: { in: 7, out: 13 } },
-      wed: { exp1: { in: 7, out: 13 } },
-      thu: { exp1: { in: 7, out: 13 } },
-      fri: { exp1: { in: 7, out: 13 } },
-    },
-  },
-  {
-    id: 'demo-amb',
-    name: 'Dr. Modelo de Teste',
-    especialidade: 'Ambulatório (demo)',
-    pattern: {
-      tue: { exp2: { in: 12, out: 17, local: 'UPA' } },
-      thu: { exp2: { in: 12, out: 17, local: 'UPA' } },
-    },
-  },
-];
+const YEAR = 2026;
 
-/* Placeholder handwriting-style images rendered on a canvas, so the demo
- * needs no real signature files. */
-function handwritingPng(text, { width = 300, height = 90, size = 48 } = {}) {
-  const canvas = document.createElement('canvas');
-  canvas.width = width;
-  canvas.height = height;
-  const ctx = canvas.getContext('2d');
-  ctx.fillStyle = '#1a2ea0';
-  ctx.font = `italic ${size}px "Snell Roundhand", "Brush Script MT", cursive`;
-  ctx.textBaseline = 'middle';
-  ctx.textAlign = 'center';
-  ctx.fillText(text, width / 2, height / 2);
-  return new Promise((resolve) =>
-    canvas.toBlob((b) => b.arrayBuffer().then((buf) => resolve(new Uint8Array(buf))), 'image/png'));
-}
+let state = {
+  calendar: null,
+  preceptorId: null,
+  authKey: null,
+  bundle: null,       // decrypted: {name, especialidade, pattern, images}
+  coordinator: null,  // {images: {signature, stamp}}
+  month: null,
+  days: [],
+  pdfBytes: null,
+};
 
-function stampPng(lines) {
-  const canvas = document.createElement('canvas');
-  canvas.width = 280;
-  canvas.height = 110;
-  const ctx = canvas.getContext('2d');
-  ctx.fillStyle = '#233';
-  ctx.textAlign = 'center';
-  lines.forEach((ln, i) => {
-    ctx.font = `${i === 0 ? 'bold ' : ''}22px Georgia`;
-    ctx.fillText(ln, 140, 34 + i * 26);
-  });
-  return new Promise((resolve) =>
-    canvas.toBlob((b) => b.arrayBuffer().then((buf) => resolve(new Uint8Array(buf))), 'image/png'));
-}
-
-let state = { calendar: null, days: [], preceptor: null, month: null };
-
-async function init() {
-  state.calendar = await loadCalendar(2026);
-
-  const selP = document.getElementById('preceptor');
-  DEMO_PRECEPTORS.forEach((p, i) => selP.add(new Option(p.name, i)));
-
-  const selM = document.getElementById('month');
-  state.calendar.releasedMonths.forEach((m) =>
-    selM.add(new Option(`${MONTH_NAMES[m - 1]} / 2026`, m)));
-
-  selP.onchange = rebuild;
-  selM.onchange = rebuild;
-  document.getElementById('generate').onclick = generate;
-  document.getElementById('send').onclick = sendByEmail;
-  rebuild();
-}
-
-function setStatus(msg, kind) {
-  const el = document.getElementById('status');
+function setStatus(id, msg, kind) {
+  const el = document.getElementById(id);
   el.textContent = msg;
   el.className = kind || '';
 }
 
-async function sendByEmail() {
-  if (!CONFIG.scriptUrl) {
-    setStatus('Envio ainda não configurado: falta instalar o Apps Script (ver instruções).', 'error');
-    return;
-  }
-  if (!state.pdfBytes) return;
-  const btn = document.getElementById('send');
-  btn.disabled = true;
-  setStatus('Enviando...', '');
+async function init() {
+  state.calendar = await loadCalendar(YEAR);
+  const selM = document.getElementById('month');
+  state.calendar.releasedMonths.forEach((m) =>
+    selM.add(new Option(`${MONTH_NAMES[m - 1]} / ${YEAR}`, m)));
+  selM.onchange = rebuildDays;
+
   try {
-    let binary = '';
-    state.pdfBytes.forEach((b) => { binary += String.fromCharCode(b); });
-    const monthLabel = `${MONTH_NAMES[state.month - 1]} 2026`;
-    const res = await fetch(CONFIG.scriptUrl, {
-      method: 'POST',
-      body: JSON.stringify({
-        pdfBase64: btoa(binary),
-        filename: `folha-${MONTH_NAMES[state.month - 1].toLowerCase()}-2026-demo.pdf`,
-        subject: `[TESTE] Folha de ponto ${monthLabel} - ${state.preceptor.name}`,
-        body: `Envio de teste do sistema HFC.\n\nPreceptor: ${state.preceptor.name}\nMês: ${monthLabel}\nTotal: ${totalHours(state.days)} h`,
-      }),
-    });
-    const out = await res.json();
-    if (!out.ok) throw new Error(out.error || 'unknown');
-    setStatus('E-mail enviado com sucesso! Confira sua caixa de entrada.', 'ok');
+    const out = await api({ action: 'list' });
+    const selP = document.getElementById('preceptor');
+    if (!out.preceptors.length) {
+      setStatus('loginStatus', 'Nenhum preceptor cadastrado ainda. Fale com a coordenação.', 'error');
+      document.getElementById('login').disabled = true;
+    }
+    out.preceptors.forEach((p) => selP.add(new Option(p.name, p.id)));
   } catch (err) {
-    setStatus(`Falha no envio: ${err.message}. Use o botão Baixar PDF e envie manualmente.`, 'error');
+    setStatus('loginStatus', `Erro ao carregar: ${err.message}`, 'error');
+  }
+
+  document.getElementById('login').onclick = login;
+  document.getElementById('password').addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') login();
+  });
+  document.getElementById('generate').onclick = generate;
+  document.getElementById('send').onclick = signAndSend;
+}
+
+async function login() {
+  const btn = document.getElementById('login');
+  btn.disabled = true;
+  setStatus('loginStatus', 'Verificando...', '');
+  try {
+    state.preceptorId = document.getElementById('preceptor').value;
+    const password = document.getElementById('password').value;
+    if (!password) throw new Error('Digite sua senha');
+    const saltOut = await api({ action: 'salt', preceptorId: state.preceptorId });
+    const { authKey, encKey } = await deriveKeys(password, saltOut.salt);
+    const out = await api({ action: 'getBundle', preceptorId: state.preceptorId, authKey });
+    state.authKey = authKey;
+    state.bundle = await decryptBundle(encKey, out.bundle);
+    state.coordinator = out.coordinator;
+    document.getElementById('loginPanel').style.display = 'none';
+    document.getElementById('workArea').style.display = 'grid';
+    document.getElementById('who').textContent =
+      `${state.bundle.name} — ${state.bundle.especialidade}`;
+    rebuildDays();
+  } catch (err) {
+    setStatus('loginStatus', err.message, 'error');
   } finally {
     btn.disabled = false;
   }
 }
 
-function rebuild() {
-  state.preceptor = DEMO_PRECEPTORS[+document.getElementById('preceptor').value];
+function rebuildDays() {
   state.month = +document.getElementById('month').value;
-  const monthDays = buildMonth(state.calendar, 2026, state.month);
-  state.days = applyPattern(monthDays, state.preceptor.pattern);
+  const monthDays = buildMonth(state.calendar, YEAR, state.month);
+  state.days = applyPattern(monthDays, state.bundle.pattern);
+  state.pdfBytes = null;
+  document.getElementById('send').style.display = 'none';
+  document.getElementById('download').style.display = 'none';
+  setStatus('status', '', '');
   renderDays();
 }
 
@@ -133,7 +96,12 @@ function renderDays() {
     cb.type = 'checkbox';
     cb.disabled = !d.shifts;
     cb.checked = d.selected;
-    cb.onchange = () => { state.days[i].selected = cb.checked; updateTotal(); };
+    cb.onchange = () => {
+      state.days[i].selected = cb.checked;
+      state.pdfBytes = null;
+      document.getElementById('send').style.display = 'none';
+      updateTotal();
+    };
     row.appendChild(cb);
     const span = document.createElement('span');
     let desc = `${String(d.day).padStart(2, '0')} (${wd[d.weekday]})`;
@@ -160,37 +128,72 @@ async function generate() {
   btn.disabled = true;
   btn.textContent = 'Gerando...';
   try {
-    const firstName = state.preceptor.name.split(' ')[2] || 'Demo';
+    const imgs = state.bundle.images;
+    const coordImgs = (state.coordinator && state.coordinator.images) || {};
     const images = {
-      rubrica: await handwritingPng(firstName.slice(0, 6), { size: 54 }),
-      signature: await handwritingPng(state.preceptor.name.replace(/^Dra?\.\s*/, ''), { width: 420, size: 40 }),
-      stampPreceptor: await stampPng([state.preceptor.name, state.preceptor.especialidade, 'CRM-SP 000000']),
-      coordSignature: await handwritingPng('Coordenador Demo', { width: 420, size: 40 }),
-      coordStamp: await stampPng(['Coordenador de Exemplo', 'Pediatra', 'CRM-SP 000000']),
+      rubrica: imgs.rubrica ? b64ToBuf(imgs.rubrica) : null,
+      signature: imgs.signature ? b64ToBuf(imgs.signature) : null,
+      stampPreceptor: imgs.stamp ? b64ToBuf(imgs.stamp) : null,
+      coordSignature: coordImgs.signature ? b64ToBuf(coordImgs.signature) : null,
+      coordStamp: coordImgs.stamp ? b64ToBuf(coordImgs.stamp) : null,
     };
     const pdfBytes = await generateSheetPdf({
-      preceptor: state.preceptor,
+      preceptor: { name: state.bundle.name, especialidade: state.bundle.especialidade },
       monthName: MONTH_NAMES[state.month - 1],
-      year: 2026,
+      year: YEAR,
       days: state.days,
       images,
     });
     state.pdfBytes = pdfBytes;
-    const blob = new Blob([pdfBytes], { type: 'application/pdf' });
-    const url = URL.createObjectURL(blob);
-    // single sheet per preceptor: hide the viewer's thumbnail pane and toolbar,
-    // and zoom so the whole page fits the frame height (A4 = 1123 px at 96 dpi)
+    const url = URL.createObjectURL(new Blob([pdfBytes], { type: 'application/pdf' }));
     const frame = document.getElementById('preview');
     const zoom = Math.max(30, Math.floor(((frame.clientHeight || 700) - 10) / 1123 * 100));
     frame.src = `${url}#toolbar=0&navpanes=0&zoom=${zoom}`;
     const dl = document.getElementById('download');
     dl.href = url;
-    dl.download = `folha-${MONTH_NAMES[state.month - 1].toLowerCase()}-2026-demo.pdf`;
+    dl.download = pdfFilename();
     dl.style.display = 'inline-block';
     document.getElementById('send').style.display = 'block';
+    setStatus('status', 'Confira a folha ao lado antes de assinar.', '');
+  } catch (err) {
+    setStatus('status', `Erro ao gerar: ${err.message}`, 'error');
   } finally {
     btn.disabled = false;
-    btn.textContent = 'Gerar folha (preview)';
+    btn.textContent = 'Conferir folha (preview)';
+  }
+}
+
+function pdfFilename() {
+  const month = MONTH_NAMES[state.month - 1].toLowerCase();
+  return `folha-${month}-${YEAR}-${state.preceptorId}.pdf`;
+}
+
+async function signAndSend() {
+  if (!state.pdfBytes) return;
+  const btn = document.getElementById('send');
+  btn.disabled = true;
+  setStatus('status', 'Enviando...', '');
+  try {
+    let binary = '';
+    state.pdfBytes.forEach((b) => { binary += String.fromCharCode(b); });
+    const monthLabel = `${MONTH_NAMES[state.month - 1]} ${YEAR}`;
+    await api({
+      action: 'send',
+      preceptorId: state.preceptorId,
+      authKey: state.authKey,
+      pdfBase64: btoa(binary),
+      filename: pdfFilename(),
+      monthLabel,
+      totalHours: totalHours(state.days),
+      subject: `Folha de ponto ${monthLabel} - ${state.bundle.name}`,
+      body: `Folha de ponto assinada eletronicamente pelo sistema HFC.\n\n` +
+        `Preceptor: ${state.bundle.name}\nSetor: ${state.bundle.especialidade}\n` +
+        `Mês: ${monthLabel}\nTotal: ${totalHours(state.days)} h`,
+    });
+    setStatus('status', 'Folha assinada e enviada com sucesso!', 'ok');
+  } catch (err) {
+    setStatus('status', `Falha no envio: ${err.message}. Baixe o PDF e envie manualmente.`, 'error');
+    btn.disabled = false;
   }
 }
 

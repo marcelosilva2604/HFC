@@ -12,133 +12,97 @@
       background: #f4f6f8;
       color: #1a2733;
     }
-    header {
-      background: #14532d;
-      color: #fff;
-      padding: 1rem 1.5rem;
-    }
+    header { background: #14532d; color: #fff; padding: 1rem 1.5rem; }
     header h1 { margin: 0; font-size: 1.2rem; }
     header p { margin: 0.2rem 0 0; font-size: 0.85rem; opacity: 0.85; }
-    .badge {
-      display: inline-block;
-      background: #f59e0b;
-      color: #1a2733;
-      font-size: 0.7rem;
-      font-weight: 700;
-      padding: 0.15rem 0.5rem;
-      border-radius: 99px;
-      margin-left: 0.5rem;
-      vertical-align: middle;
-    }
-    main {
-      display: grid;
-      grid-template-columns: 380px 1fr;
-      gap: 1rem;
-      padding: 1rem 1.5rem;
-      max-width: 1300px;
-      margin: 0 auto;
-    }
-    @media (max-width: 900px) { main { grid-template-columns: 1fr; } }
+    main { padding: 1rem 1.5rem; max-width: 1300px; margin: 0 auto; }
     .panel {
-      background: #fff;
-      border-radius: 10px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.06);
-      padding: 1rem;
+      background: #fff; border-radius: 10px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.06); padding: 1.2rem;
     }
+    #loginPanel { max-width: 420px; margin: 3rem auto; }
+    #workArea { display: none; grid-template-columns: 380px 1fr; gap: 1rem; }
+    @media (max-width: 900px) { #workArea { grid-template-columns: 1fr; } }
     label.field { display: block; font-size: 0.8rem; font-weight: 600; margin: 0.6rem 0 0.2rem; }
-    select {
-      width: 100%;
-      padding: 0.45rem;
-      border: 1px solid #cbd5e1;
-      border-radius: 6px;
-      font-size: 0.9rem;
-      background: #fff;
+    select, input[type=password] {
+      width: 100%; padding: 0.5rem; border: 1px solid #cbd5e1;
+      border-radius: 6px; font-size: 0.95rem; background: #fff;
     }
     #days {
-      margin-top: 0.8rem;
-      max-height: 420px;
-      overflow-y: auto;
-      border: 1px solid #e2e8f0;
-      border-radius: 6px;
+      margin-top: 0.8rem; max-height: 400px; overflow-y: auto;
+      border: 1px solid #e2e8f0; border-radius: 6px;
     }
     .day {
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-      padding: 0.28rem 0.6rem;
-      font-size: 0.82rem;
-      border-bottom: 1px solid #f1f5f9;
+      display: flex; align-items: center; gap: 0.5rem;
+      padding: 0.28rem 0.6rem; font-size: 0.82rem; border-bottom: 1px solid #f1f5f9;
     }
     .day.saturday, .day.sunday { background: #e2e8f0; color: #64748b; }
     .day.feriado, .day.ponto_facultativo { background: #fef9c3; color: #854d0e; }
     .day.has-shift { font-weight: 600; }
     #total { font-weight: 700; margin-top: 0.6rem; font-size: 0.95rem; }
     button {
-      margin-top: 0.8rem;
-      width: 100%;
-      padding: 0.65rem;
-      background: #14532d;
-      color: #fff;
-      border: none;
-      border-radius: 8px;
-      font-size: 0.95rem;
-      font-weight: 600;
-      cursor: pointer;
+      margin-top: 0.8rem; width: 100%; padding: 0.65rem;
+      background: #14532d; color: #fff; border: none; border-radius: 8px;
+      font-size: 0.95rem; font-weight: 600; cursor: pointer;
     }
     button:disabled { opacity: 0.6; cursor: wait; }
+    button.primary-action { background: #b45309; }
     #download {
-      display: none;
-      margin-top: 0.6rem;
-      text-align: center;
-      width: 100%;
-      padding: 0.5rem;
-      border: 1.5px solid #14532d;
-      border-radius: 8px;
-      color: #14532d;
-      font-weight: 600;
-      font-size: 0.9rem;
-      text-decoration: none;
+      display: none; margin-top: 0.6rem; text-align: center; width: 100%;
+      padding: 0.5rem; border: 1.5px solid #14532d; border-radius: 8px;
+      color: #14532d; font-weight: 600; font-size: 0.9rem; text-decoration: none;
     }
-    button.secondary {
-      background: #fff;
-      color: #14532d;
-      border: 1.5px solid #14532d;
-    }
-    #status { margin-top: 0.6rem; font-size: 0.85rem; min-height: 1.2em; }
-    #status.ok { color: #15803d; font-weight: 600; }
-    #status.error { color: #b91c1c; font-weight: 600; }
+    #status, #loginStatus { margin-top: 0.6rem; font-size: 0.85rem; min-height: 1.2em; }
+    .ok { color: #15803d; font-weight: 600; }
+    .error { color: #b91c1c; font-weight: 600; }
     #preview {
-      width: 100%;
-      height: 82vh;
-      border: 1px solid #e2e8f0;
-      border-radius: 10px;
-      background: #fff;
+      width: 100%; height: 82vh; border: 1px solid #e2e8f0;
+      border-radius: 10px; background: #fff;
     }
+    #who { font-size: 0.9rem; font-weight: 600; margin-bottom: 0.4rem; }
+    .footer-note { text-align: center; font-size: 0.75rem; color: #94a3b8; padding: 1rem; }
+    .footer-note a { color: #64748b; }
   </style>
 </head>
 <body>
   <header>
-    <h1>HFC — Folha de Ponto dos Preceptores <span class="badge">DEMONSTRAÇÃO</span></h1>
-    <p>Residência Médica de Pediatria · Piracicaba · dados fictícios nesta fase</p>
+    <h1>HFC — Folha de Ponto dos Preceptores</h1>
+    <p>Residência Médica de Pediatria · Piracicaba</p>
   </header>
   <main>
-    <section class="panel">
-      <label class="field" for="preceptor">Preceptor</label>
+    <section class="panel" id="loginPanel">
+      <label class="field" for="preceptor">Quem é você?</label>
       <select id="preceptor"></select>
-      <label class="field" for="month">Mês</label>
-      <select id="month"></select>
-      <div id="days"></div>
-      <div id="total"></div>
-      <button id="generate">Gerar folha (preview)</button>
-      <a id="download">Baixar PDF</a>
-      <button id="send" class="secondary" style="display:none">Enviar por e-mail (teste)</button>
-      <div id="status"></div>
+      <label class="field" for="password">Sua senha</label>
+      <input type="password" id="password" autocomplete="current-password">
+      <button id="login">Entrar</button>
+      <div id="loginStatus"></div>
     </section>
-    <section>
-      <iframe id="preview" title="Preview da folha de ponto"></iframe>
+
+    <section id="workArea">
+      <section class="panel">
+        <div id="who"></div>
+        <label class="field" for="month">Mês</label>
+        <select id="month"></select>
+        <p style="font-size:0.8rem;color:#64748b;margin:0.5rem 0 0">
+          Desmarque os dias em que não esteve presente. A folha vale pelo que você confirmar.
+        </p>
+        <div id="days"></div>
+        <div id="total"></div>
+        <button id="generate">Conferir folha (preview)</button>
+        <button id="send" class="primary-action" style="display:none">Assinar e enviar</button>
+        <a id="download">Baixar PDF</a>
+        <div id="status"></div>
+      </section>
+      <section>
+        <iframe id="preview" title="Preview da folha de ponto"></iframe>
+      </section>
     </section>
   </main>
+  <p class="footer-note"><a href="demo.html">modo demonstração</a></p>
   <script src="js/config.js"></script>
+  <script src="js/api.js"></script>
+  <script src="js/crypto.js"></script>
   <script src="js/vendor/pdf-lib.min.js"></script>
   <script src="js/calendar.js"></script>
   <script src="js/sheet-pdf.js"></script>
