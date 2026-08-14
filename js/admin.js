@@ -64,8 +64,8 @@ function setStatus(id, msg, kind) {
 }
 
 function readStampLines(prefix) {
-  return ['1', '2', '3']
-    .map((n) => document.getElementById(`${prefix}Stamp${n}`).value.trim())
+  return ['1', '2', '3', '4']
+    .map((n) => (document.getElementById(`${prefix}Stamp${n}`) || { value: '' }).value.trim())
     .filter(Boolean);
 }
 
