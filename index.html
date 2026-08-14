@@ -99,6 +99,14 @@
       font-size: 0.9rem;
       text-decoration: none;
     }
+    button.secondary {
+      background: #fff;
+      color: #14532d;
+      border: 1.5px solid #14532d;
+    }
+    #status { margin-top: 0.6rem; font-size: 0.85rem; min-height: 1.2em; }
+    #status.ok { color: #15803d; font-weight: 600; }
+    #status.error { color: #b91c1c; font-weight: 600; }
     #preview {
       width: 100%;
       height: 82vh;
@@ -123,11 +131,14 @@
       <div id="total"></div>
       <button id="generate">Gerar folha (preview)</button>
       <a id="download">Baixar PDF</a>
+      <button id="send" class="secondary" style="display:none">Enviar por e-mail (teste)</button>
+      <div id="status"></div>
     </section>
     <section>
       <iframe id="preview" title="Preview da folha de ponto"></iframe>
     </section>
   </main>
+  <script src="js/config.js"></script>
   <script src="js/vendor/pdf-lib.min.js"></script>
   <script src="js/calendar.js"></script>
   <script src="js/sheet-pdf.js"></script>

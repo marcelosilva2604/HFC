@@ -72,7 +72,46 @@ async function init() {
   selP.onchange = rebuild;
   selM.onchange = rebuild;
   document.getElementById('generate').onclick = generate;
+  document.getElementById('send').onclick = sendByEmail;
   rebuild();
+}
+
+function setStatus(msg, kind) {
+  const el = document.getElementById('status');
+  el.textContent = msg;
+  el.className = kind || '';
+}
+
+async function sendByEmail() {
+  if (!CONFIG.scriptUrl) {
+    setStatus('Envio ainda não configurado: falta instalar o Apps Script (ver instruções).', 'error');
+    return;
+  }
+  if (!state.pdfBytes) return;
+  const btn = document.getElementById('send');
+  btn.disabled = true;
+  setStatus('Enviando...', '');
+  try {
+    let binary = '';
+    state.pdfBytes.forEach((b) => { binary += String.fromCharCode(b); });
+    const monthLabel = `${MONTH_NAMES[state.month - 1]} 2026`;
+    const res = await fetch(CONFIG.scriptUrl, {
+      method: 'POST',
+      body: JSON.stringify({
+        pdfBase64: btoa(binary),
+        filename: `folha-${MONTH_NAMES[state.month - 1].toLowerCase()}-2026-demo.pdf`,
+        subject: `[TESTE] Folha de ponto ${monthLabel} - ${state.preceptor.name}`,
+        body: `Envio de teste do sistema HFC.\n\nPreceptor: ${state.preceptor.name}\nMês: ${monthLabel}\nTotal: ${totalHours(state.days)} h`,
+      }),
+    });
+    const out = await res.json();
+    if (!out.ok) throw new Error(out.error || 'unknown');
+    setStatus('E-mail enviado com sucesso! Confira sua caixa de entrada.', 'ok');
+  } catch (err) {
+    setStatus(`Falha no envio: ${err.message}. Use o botão Baixar PDF e envie manualmente.`, 'error');
+  } finally {
+    btn.disabled = false;
+  }
 }
 
 function rebuild() {
@@ -136,13 +175,16 @@ async function generate() {
       days: state.days,
       images,
     });
+    state.pdfBytes = pdfBytes;
     const blob = new Blob([pdfBytes], { type: 'application/pdf' });
     const url = URL.createObjectURL(blob);
-    document.getElementById('preview').src = url;
+    // single sheet per preceptor: hide the viewer's thumbnail pane and toolbar
+    document.getElementById('preview').src = `${url}#toolbar=0&navpanes=0&view=FitH`;
     const dl = document.getElementById('download');
     dl.href = url;
     dl.download = `folha-${MONTH_NAMES[state.month - 1].toLowerCase()}-2026-demo.pdf`;
     dl.style.display = 'inline-block';
+    document.getElementById('send').style.display = 'block';
   } finally {
     btn.disabled = false;
     btn.textContent = 'Gerar folha (preview)';
