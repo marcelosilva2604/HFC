@@ -1,0 +1,26 @@
+{
+  "year": 2026,
+  "releasedMonths": [9, 10, 11, 12],
+  "holidays": {
+    "2026-01-01": {"type": "feriado", "name": "Confraternizacao Universal"},
+    "2026-02-16": {"type": "ponto_facultativo", "name": "Carnaval"},
+    "2026-02-17": {"type": "ponto_facultativo", "name": "Carnaval"},
+    "2026-02-18": {"type": "ponto_facultativo", "name": "Quarta-feira de Cinzas (ate 12h)"},
+    "2026-04-03": {"type": "feriado", "name": "Sexta-feira Santa"},
+    "2026-04-21": {"type": "feriado", "name": "Tiradentes"},
+    "2026-05-01": {"type": "feriado", "name": "Dia do Trabalho"},
+    "2026-06-04": {"type": "feriado", "name": "Corpus Christi"},
+    "2026-06-05": {"type": "ponto_facultativo", "name": "Ponto Facultativo"},
+    "2026-06-13": {"type": "feriado", "name": "Santo Antonio - Padroeiro de Piracicaba"},
+    "2026-08-01": {"type": "feriado", "name": "Aniversario de Piracicaba"},
+    "2026-09-07": {"type": "feriado", "name": "Independencia do Brasil"},
+    "2026-10-12": {"type": "feriado", "name": "Nossa Senhora Aparecida"},
+    "2026-11-02": {"type": "feriado", "name": "Finados"},
+    "2026-11-15": {"type": "feriado", "name": "Proclamacao da Republica"},
+    "2026-11-20": {"type": "feriado", "name": "Consciencia Negra"},
+    "2026-12-08": {"type": "feriado", "name": "Imaculada Conceicao"},
+    "2026-12-24": {"type": "ponto_facultativo", "name": "Vespera de Natal"},
+    "2026-12-25": {"type": "feriado", "name": "Natal"},
+    "2026-12-31": {"type": "ponto_facultativo", "name": "Vespera de Ano Novo"}
+  }
+}
