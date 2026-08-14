@@ -178,8 +178,11 @@ async function generate() {
     state.pdfBytes = pdfBytes;
     const blob = new Blob([pdfBytes], { type: 'application/pdf' });
     const url = URL.createObjectURL(blob);
-    // single sheet per preceptor: hide the viewer's thumbnail pane and toolbar
-    document.getElementById('preview').src = `${url}#toolbar=0&navpanes=0&view=FitH`;
+    // single sheet per preceptor: hide the viewer's thumbnail pane and toolbar,
+    // and zoom so the whole page fits the frame height (A4 = 1123 px at 96 dpi)
+    const frame = document.getElementById('preview');
+    const zoom = Math.max(30, Math.floor(((frame.clientHeight || 700) - 10) / 1123 * 100));
+    frame.src = `${url}#toolbar=0&navpanes=0&zoom=${zoom}`;
     const dl = document.getElementById('download');
     dl.href = url;
     dl.download = `folha-${MONTH_NAMES[state.month - 1].toLowerCase()}-2026-demo.pdf`;
