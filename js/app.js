@@ -172,12 +172,44 @@ function pdfFilename() {
   return `folha-${month}-${YEAR}-${state.preceptorId}.pdf`;
 }
 
+/* ---- animated send flow ---- */
+
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+
+function setStep(id, cls) {
+  const el = document.getElementById(id);
+  el.classList.remove('active', 'done', 'fail');
+  if (cls) el.classList.add(cls);
+}
+
+function openModal() {
+  ['stepSign', 'stepSend', 'stepDone'].forEach((s) => setStep(s, null));
+  const anim = document.getElementById('mailAnim');
+  anim.classList.remove('fly');
+  anim.textContent = '✉️';
+  const final = document.getElementById('modalFinal');
+  final.hidden = true;
+  final.classList.remove('fail');
+  document.getElementById('modalClose').hidden = true;
+  document.getElementById('sendModal').hidden = false;
+}
+
+function closeModal() {
+  document.getElementById('sendModal').hidden = true;
+}
+
 async function signAndSend() {
   if (!state.pdfBytes) return;
   const btn = document.getElementById('send');
   btn.disabled = true;
-  setStatus('status', 'Enviando...', '');
+  openModal();
   try {
+    setStep('stepSign', 'active');
+    await sleep(700);
+    setStep('stepSign', 'done');
+    await sleep(300);
+    setStep('stepSend', 'active');
+
     let binary = '';
     state.pdfBytes.forEach((b) => { binary += String.fromCharCode(b); });
     const monthLabel = `${MONTH_NAMES[state.month - 1]} ${YEAR}`;
@@ -194,9 +226,28 @@ async function signAndSend() {
         `Preceptor: ${state.bundle.name}\nSetor: ${state.bundle.especialidade}\n` +
         `Mês: ${monthLabel}\nTotal: ${totalHours(state.days)} h`,
     });
+
+    setStep('stepSend', 'done');
+    await sleep(300);
+    setStep('stepDone', 'active');
+    document.getElementById('mailAnim').classList.add('fly');
+    await sleep(900);
+    setStep('stepDone', 'done');
+    const final = document.getElementById('modalFinal');
+    final.textContent = 'Folha enviada com sucesso!';
+    final.hidden = false;
     setStatus('status', 'Folha assinada e enviada com sucesso!', 'ok');
+    await sleep(2200);
+    closeModal();
   } catch (err) {
-    setStatus('status', `Falha no envio: ${err.message}. Baixe o PDF e envie manualmente.`, 'error');
+    setStep('stepSend', 'fail');
+    const final = document.getElementById('modalFinal');
+    final.textContent = `Falha no envio: ${err.message}. Baixe o PDF e envie manualmente.`;
+    final.classList.add('fail');
+    final.hidden = false;
+    document.getElementById('modalClose').hidden = false;
+    document.getElementById('modalClose').onclick = closeModal;
+    setStatus('status', `Falha no envio: ${err.message}.`, 'error');
     btn.disabled = false;
   }
 }
