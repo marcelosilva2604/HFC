@@ -222,7 +222,10 @@ async function generateSheetPdf({ preceptor, monthName, year, days, images, stam
     const lx = MARGIN.left + 118;
     line(lx, yy + 1.5, lx + sigLineW, yy + 1.5, 0.8);
     if (sigImg) {
-      const sh = 30; const sw = sh * (sigImg.width / sigImg.height);
+      // fit inside the line width AND a modest height, sitting on the line
+      const ratio = sigImg.width / sigImg.height;
+      const sw = Math.min(sigLineW - 12, 20 * ratio);
+      const sh = sw / ratio;
       page.drawImage(sigImg, { x: lx + (sigLineW - sw) / 2, y: toPdfY(yy), width: sw, height: sh });
     }
     text('Carimbo:', lx + sigLineW + 14, yy, { size: 8.5 });
@@ -237,12 +240,13 @@ async function generateSheetPdf({ preceptor, monthName, year, days, images, stam
   };
 
   drawSigBlock('Assinatura – Preceptor:', y, imgSignature, imgStamp, stamps.preceptorLines);
-  y += 34;
+  y += 38;
   drawSigBlock('Assinatura - Coordenador:', y, imgCoordSig, imgCoordStamp, stamps.coordLines);
 
-  // total hours, annotated at the right edge like the handwritten originals
+  // total hours on its own line, below everything
+  y += 34;
   const total = totalHours(days);
-  text(`= ${total} h`, tableRight - 24, y + 2, { font: helvBold, size: 10, center: true });
+  text(`${total} horas`, tableRight - 40, y, { font: helvBold, size: 10, center: true });
 
   return doc.save();
 }
