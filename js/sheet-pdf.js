@@ -20,8 +20,10 @@ async function fetchBytes(url) {
 }
 
 /* images: { rubrica, signature, stampPreceptor, coordSignature, coordStamp }
- * each as Uint8Array (PNG) or null. */
-async function generateSheetPdf({ preceptor, monthName, year, days, images }) {
+ * each as Uint8Array (PNG) or null. Stamps can instead be given as text via
+ * stamps: { preceptorLines: [...], coordLines: [...] } - rendered as crisp
+ * vector text (preferred over stamp photos). */
+async function generateSheetPdf({ preceptor, monthName, year, days, images, stamps = {} }) {
   const { PDFDocument, StandardFonts, rgb } = PDFLib;
   const doc = await PDFDocument.create();
   const page = doc.addPage([PAGE.width, PAGE.height]);
@@ -227,14 +229,16 @@ async function generateSheetPdf({ preceptor, monthName, year, days, images }) {
     if (stampImg) {
       const th = 34; const tw = th * (stampImg.width / stampImg.height);
       page.drawImage(stampImg, { x: lx + sigLineW + 55, y: toPdfY(yy + 8), width: tw, height: th });
-    } else if (stampFallback) {
-      stampFallback.forEach((ln, i) => text(ln, lx + sigLineW + 55, yy - 6 + i * 9, { size: 7.5 }));
+    } else if (stampFallback && stampFallback.length) {
+      const startY = yy - 4 * (stampFallback.length - 1);
+      stampFallback.forEach((ln, i) => text(ln, lx + sigLineW + 55, startY + i * 9,
+        { size: i === 0 ? 8 : 7.5, font: i === 0 ? helvBold : helv }));
     }
   };
 
-  drawSigBlock('Assinatura – Preceptor:', y, imgSignature, imgStamp, null);
+  drawSigBlock('Assinatura – Preceptor:', y, imgSignature, imgStamp, stamps.preceptorLines);
   y += 34;
-  drawSigBlock('Assinatura - Coordenador:', y, imgCoordSig, imgCoordStamp, null);
+  drawSigBlock('Assinatura - Coordenador:', y, imgCoordSig, imgCoordStamp, stamps.coordLines);
 
   // total hours, annotated at the right edge like the handwritten originals
   const total = totalHours(days);

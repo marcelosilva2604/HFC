@@ -63,6 +63,12 @@ function setStatus(id, msg, kind) {
   el.className = kind || '';
 }
 
+function readStampLines(prefix) {
+  return ['1', '2', '3']
+    .map((n) => document.getElementById(`${prefix}Stamp${n}`).value.trim())
+    .filter(Boolean);
+}
+
 function adminToken() {
   return document.getElementById('adminToken').value.trim();
 }
@@ -110,8 +116,9 @@ async function savePreceptor() {
     if (!Object.keys(pattern).length) throw new Error('Preencha o padrão semanal');
     const rubrica = await fileToB64(document.getElementById('pRubrica'));
     const signature = await fileToB64(document.getElementById('pAssinatura'));
-    const stamp = await fileToB64(document.getElementById('pCarimbo'));
     if (!rubrica || !signature) throw new Error('Rubrica e assinatura são obrigatórias');
+    const stampLines = readStampLines('p');
+    if (!stampLines.length) throw new Error('Preencha ao menos uma linha do carimbo');
 
     const salt = newSalt();
     const { authKey, encKey } = await deriveKeys(password, salt);
@@ -119,7 +126,8 @@ async function savePreceptor() {
       name, especialidade: esp,
       email: document.getElementById('pEmail').value.trim(),
       pattern,
-      images: { rubrica, signature, stamp },
+      images: { rubrica, signature },
+      stampLines,
     });
     await api({
       action: 'register',
@@ -142,12 +150,13 @@ async function saveCoordinator() {
   setStatus('coordStatus', 'Salvando...', '');
   try {
     const signature = await fileToB64(document.getElementById('cAssinatura'));
-    const stamp = await fileToB64(document.getElementById('cCarimbo'));
-    if (!signature || !stamp) throw new Error('Envie assinatura e carimbo');
+    if (!signature) throw new Error('Envie a assinatura');
+    const stampLines = readStampLines('c');
+    if (!stampLines.length) throw new Error('Preencha ao menos uma linha do carimbo');
     await api({
       action: 'setCoordinator',
       adminToken: adminToken(),
-      coordinator: { images: { signature, stamp } },
+      coordinator: { images: { signature }, stampLines },
     });
     setStatus('coordStatus', 'Coordenador salvo!', 'ok');
   } catch (err) {

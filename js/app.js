@@ -143,6 +143,10 @@ async function generate() {
       year: YEAR,
       days: state.days,
       images,
+      stamps: {
+        preceptorLines: state.bundle.stampLines || null,
+        coordLines: (state.coordinator && state.coordinator.stampLines) || null,
+      },
     });
     state.pdfBytes = pdfBytes;
     const url = URL.createObjectURL(new Blob([pdfBytes], { type: 'application/pdf' }));
