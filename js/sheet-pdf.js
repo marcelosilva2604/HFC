@@ -192,19 +192,25 @@ async function generateSheetPdf({ preceptor, monthName, year, days, images, stam
             width: rw, height: rh,
           });
         };
+        // shrink long "Local" names until they fit their column
+        const fitCol = (str, col, yy) => {
+          let size = 7.5;
+          while (size > 4 && helv.widthOfTextAtSize(str, size) > colW[col] - 4) size -= 0.25;
+          centerInCol(str, col, yy, { size });
+        };
         if (s.exp1) {
           centerInCol(fmtHour(s.exp1.in), 1, y + rowH / 2 + 2.5, { size: 8 });
           drawRub(2);
           centerInCol(fmtHour(s.exp1.out), 3, y + rowH / 2 + 2.5, { size: 8 });
           drawRub(4);
-          if (s.exp1.local) centerInCol(s.exp1.local, 5, y + rowH / 2 + 2.5, { size: 7.5 });
+          if (s.exp1.local) fitCol(s.exp1.local, 5, y + rowH / 2 + 2.5);
         }
         if (s.exp2) {
           centerInCol(fmtHour(s.exp2.in), 6, y + rowH / 2 + 2.5, { size: 8 });
           drawRub(7);
           centerInCol(fmtHour(s.exp2.out), 8, y + rowH / 2 + 2.5, { size: 8 });
           drawRub(9);
-          if (s.exp2.local) centerInCol(s.exp2.local, 10, y + rowH / 2 + 2.5, { size: 7.5 });
+          if (s.exp2.local) fitCol(s.exp2.local, 10, y + rowH / 2 + 2.5);
         }
       }
     }
