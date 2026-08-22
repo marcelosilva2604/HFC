@@ -20,8 +20,8 @@
  * Version: New version > Deploy. The /exec URL stays the same.
  */
 
-var RECIPIENT = 'marcelo_carvalhosilva@hotmail.com'; // demo target; COREME later
-var CC = '';
+var RECIPIENT = 'coreme@piracicaba.sp.gov.br';
+var CC = 'marcelo_carvalhosilva@hotmail.com';
 var MAX_PDF_BYTES = 2 * 1024 * 1024;
 var MAX_FAILS = 5;
 var LOCK_MINUTES = 15;
